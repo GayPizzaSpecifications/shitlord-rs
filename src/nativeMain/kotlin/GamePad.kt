@@ -1,5 +1,8 @@
 package com.a_dinosaur.kotlinsdl
 
+import com.a_dinosaur.kotlinsdl.maths.Vec2
+import kotlin.native.concurrent.ThreadLocal
+
 @ThreadLocal
 object GamePad
 {
@@ -26,8 +29,8 @@ object GamePad
 	}
 
 	data class Stick(
-		var raw: Vector2f = Vector2f.ZERO,
-		var compensated: Vector2f = Vector2f.ZERO,
+		var raw: Vec2 = Vec2.ZERO,
+		var compensated: Vec2 = Vec2.ZERO,
 		var dirty: Boolean = true)
 	{
 		fun update()
@@ -54,8 +57,8 @@ object GamePad
 	var rawTriggerLeft: Float get() = triggerLeft; set(v) { triggerLeft = v }
 	var rawTriggerRight: Float get() = triggerRight; set(v) { triggerRight = v }
 
-	val leftStick: Vector2f get() = stickLeft.compensated
-	val rightStick: Vector2f get() = stickRight.compensated
+	val leftStick: Vec2 get() = stickLeft.compensated
+	val rightStick: Vec2 get() = stickRight.compensated
 	val leftTrigger: Float get() = triggerLeft
 	val rightTrigger: Float get() = triggerRight
 
@@ -72,11 +75,11 @@ object GamePad
 	fun down(button: Button): Boolean = buttonState and button.mask == button.mask
 	fun up(button: Button): Boolean = buttonState and button.mask != button.mask
 
-	private fun radialDeadzone(v: Vector2f, min: Float, max: Float): Vector2f
+	private fun radialDeadzone(v: Vec2, min: Float, max: Float): Vec2
 	{
 		val magnitude = v.magnitude
 		if (magnitude == 0.0f || magnitude < min)
-			return Vector2f.ZERO
+			return Vec2.ZERO
 		if (magnitude > max)
 			return v / magnitude
 		val rescale = (magnitude - min) / (max - min)

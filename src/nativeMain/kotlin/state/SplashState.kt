@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+
 package com.a_dinosaur.kotlinsdl.state
 
 import com.a_dinosaur.kotlinsdl.Application
 import com.a_dinosaur.kotlinsdl.Renderer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlin.math.*
 
 class SplashState: State
@@ -29,6 +32,6 @@ class SplashState: State
 		Renderer.setBlendMode(Renderer.BlendMode.Blend)
 		val alpha = (fade * 255.0f).toUInt().toUByte()
 		Renderer.setDrawColour(Renderer.Colour(0x00u, 0x00u, 0x00u, alpha))
-		Renderer.boxFill(Renderer.Rect(0, 0, 640, 480))
+		Renderer.boxFill(Renderer.Rect(0f, 0f, 640f, 480f))
 	}
 }

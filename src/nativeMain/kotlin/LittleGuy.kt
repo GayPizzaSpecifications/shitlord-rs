@@ -1,15 +1,19 @@
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+
 package com.a_dinosaur.kotlinsdl
 
 import kotlinx.cinterop.CPointer
-import SDL2.SDL_Texture
+import com.a_dinosaur.kotlinsdl.maths.Vec2
+import io.karma.sdl.SDL_Texture
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlin.random.Random
 
 class LittleGuy
 {
-	private var pos = Vector2f.ZERO
-	private var vel = Vector2f.ZERO
+	private var pos = Vec2.ZERO
+	private var vel = Vec2.ZERO
 	private var flip = false
-	private var lazorVec = Vector2f.ZERO
+	private var lazorVec = Vec2.ZERO
 	private var lazor = false
 
 	val guyTexture: CPointer<SDL_Texture>? = Renderer.loadTexture("beato.png")
@@ -79,7 +83,7 @@ class LittleGuy
 	{
 		val width = 48.0f
 		val height = 64.0f
-		val dst = Renderer.FRect(
+		val dst = Renderer.Rect(
 			x = pos.x - width * 0.5f,
 			y = pos.y - height * 0.5f,
 			w = width,
@@ -94,10 +98,10 @@ class LittleGuy
 			val jittor = 8.0f
 			val angolJittor = 0.18f
 
-			fun lightning(v1: Vector2f, angle: Float, levels: Int)
+			fun lightning(v1: Vec2, angle: Float, levels: Int)
 			{
-				val v2 = v1 + Vector2f.fromAngle(angle) * advance +
-					Vector2f(
+				val v2 = v1 + Vec2.fromAngle(angle) * advance +
+					Vec2(
 						Random.nextFloat() * jittor - jittor * 0.5f,
 						Random.nextFloat() * jittor - jittor * 0.5f)
 
@@ -109,14 +113,20 @@ class LittleGuy
 				Renderer.setDrawColour(colour)
 				Renderer.line(v1, v2)
 
+				fun pMod(x: Float, d: Float) = (x % d + d) % d
+
+				val v3 = Vec2(
+					pMod(v2.x + 32.0f, 640.0f + 64.0f) - 32.0f,
+					pMod(v2.y + 48.0f, 480.0f + 96.0f) - 48.0f)
+
 				if (levels > 1)
 				{
 					val rando = angle + Random.nextFloat() * angolJittor - angolJittor * 0.5f + 0.01f
-					lightning(v2, rando, levels - if (Random.nextInt(3) == 0) 2 else 1)
+					lightning(v3, rando, levels - if (Random.nextInt(3) == 0) 2 else 1)
 					if (Random.nextInt(14) == 0)
 					{
 						val rando2 = angle - Random.nextFloat() * angolJittor - angolJittor * 0.5f
-						lightning(v2, rando2, levels - 1)
+						lightning(v3, rando2, levels - 1)
 					}
 				}
 			}

@@ -1,22 +1,23 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.a_dinosaur.kotlinsdl
 
 import kotlinx.cinterop.*
-import SDL2.*
-import SDL2.SDL_Rect
-import SDL2_image.*
+import io.karma.sdl.*
+import com.a_dinosaur.kotlinsdl.maths.Vec2
+import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
 object Renderer
 {
-	data class Rect(val x: Int, val y: Int, val w: Int, val h: Int)
-	data class FRect(val x: Float, val y: Float, val w: Float, val h: Float)
+	data class Rect(val x: Float, val y: Float, val w: Float, val h: Float)
 
-	enum class Flip(val value: SDL_RendererFlip)
+	enum class Flip(val value: SDL_FlipMode)
 	{
-		None(SDL_FLIP_NONE),
-		Horizontal(SDL_FLIP_HORIZONTAL),
-		Vertical(SDL_FLIP_VERTICAL),
-		Both(SDL_FLIP_HORIZONTAL and SDL_FLIP_VERTICAL)
+		None(SDL_FlipMode.SDL_FLIP_NONE),
+		Horizontal(SDL_FlipMode.SDL_FLIP_HORIZONTAL),
+		Vertical(SDL_FlipMode.SDL_FLIP_VERTICAL),
+		Both(SDL_FlipMode.byValue(SDL_FlipMode.SDL_FLIP_HORIZONTAL.value and SDL_FlipMode.SDL_FLIP_VERTICAL.value))
 	}
 
 	enum class BlendMode(val mode: SDL_BlendMode)
@@ -43,21 +44,22 @@ object Renderer
 		}
 	}
 
-	private lateinit var renderer: CPointer<SDL_Renderer>
+	private lateinit var renderer: CPointer<cnames.structs.SDL_Renderer>
 
 	// https://en.wikipedia.org/wiki/Kotlin-class_destroyer
-	private val sdlSrc = nativeHeap.alloc<SDL_Rect>()
-	private val sdlDst = nativeHeap.alloc<SDL_Rect>()
-	private val sdlFDst = nativeHeap.alloc<SDL_FRect>()
+	private val sdlSrc = nativeHeap.alloc<SDL_FRect>()
+	private val sdlDst = nativeHeap.alloc<SDL_FRect>()
 
 	private val textures: MutableMap<String, CPointer<SDL_Texture>> = mutableMapOf()
 
-	fun init(window: CPointer<SDL_Window>, flags: SDL_RendererFlags)
+	fun init(window: CPointer<cnames.structs.SDL_Window>, vsync: Boolean)
 	{
-		renderer = SDL_CreateRenderer(window, -1, flags)
+		renderer = SDL_CreateRenderer(window, null)
 			?: throw Error("SDL_CreateRenderer returned ${SDL_GetError()}")
 
-		SDL_RenderSetLogicalSize(renderer, 640, 480)
+		SDL_SetRenderVSync(renderer, if (vsync) 1 else 0)
+		SDL_SetRenderLogicalPresentation(renderer, 640, 480,
+			SDL_RendererLogicalPresentation.SDL_LOGICAL_PRESENTATION_LETTERBOX)
 	}
 
 	fun free()
@@ -89,9 +91,9 @@ object Renderer
 		SDL_RenderClear(renderer)
 	}
 
-	fun line(v1: Vector2f, v2: Vector2f)
+	fun line(v1: Vec2, v2: Vec2)
 	{
-		SDL_RenderDrawLineF(renderer, v1.x, v1.y, v2.x, v2.y)
+		SDL_RenderLine(renderer, v1.x, v1.y, v2.x, v2.y)
 	}
 
 	fun boxFill(dst: Rect)
@@ -103,16 +105,13 @@ object Renderer
 		SDL_RenderFillRect(renderer, sdlDst.ptr)
 	}
 
-	fun loadTexture(path: String): CPointer<SDL_Texture>?
-	{
-		return textures.getOrElse(path) {
-			IMG_LoadTexture(renderer, path)?.let { texture -> textures[path] = texture; texture }
-		}
+	fun loadTexture(path: String): CPointer<SDL_Texture>? = textures.getOrElse(path) {
+		SDL_CreateTextureFromSurface(renderer, SDL_LoadBMP(path.replaceAfter(".", "bmp")))
 	}
 
 	fun copy(texture: CPointer<SDL_Texture>)
 	{
-		SDL_RenderCopy(renderer, texture, null, null)
+		SDL_RenderTexture(renderer, texture, null, null)
 	}
 
 	fun copy(texture: CPointer<SDL_Texture>, dst: Rect)
@@ -121,7 +120,7 @@ object Renderer
 		sdlDst.y = dst.y
 		sdlDst.w = dst.w
 		sdlDst.h = dst.h
-		SDL_RenderCopy(renderer, texture, null, sdlDst.ptr)
+		SDL_RenderTexture(renderer, texture, null, sdlDst.ptr)
 	}
 
 	fun copy(texture: CPointer<SDL_Texture>, src: Rect, dst: Rect)
@@ -134,15 +133,15 @@ object Renderer
 		sdlDst.y = dst.y
 		sdlDst.w = dst.w
 		sdlDst.h = dst.h
-		SDL_RenderCopy(renderer, texture, sdlSrc.ptr, sdlDst.ptr)
+		SDL_RenderTexture(renderer, texture, sdlSrc.ptr, sdlDst.ptr)
 	}
 
-	fun copy(texture: CPointer<SDL_Texture>, dst: FRect, angle: Double, flip: Flip)
+	fun copy(texture: CPointer<SDL_Texture>, dst: Rect, angle: Double, flip: Flip)
 	{
-		sdlFDst.x = dst.x
-		sdlFDst.y = dst.y
-		sdlFDst.w = dst.w
-		sdlFDst.h = dst.h
-		SDL_RenderCopyExF(renderer, texture, null, sdlFDst.ptr, angle, null, flip.value)
+		sdlDst.x = dst.x
+		sdlDst.y = dst.y
+		sdlDst.w = dst.w
+		sdlDst.h = dst.h
+		SDL_RenderTextureRotated(renderer, texture, null, sdlDst.ptr, angle, null, flip.value)
 	}
 }
