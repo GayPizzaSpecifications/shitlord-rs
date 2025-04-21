@@ -1,0 +1,12 @@
+package = SDL2_image
+headers = SDL2_image/SDL_image.h
+headerFilter = SDL2_image/SDL_image.h
+
+#linkerOpts = -lSDL2_image
+# not work :(
+#compilerOpts.osx = -I/Library/Frameworks/SDL2_image.framework/Headers -I/Library/Frameworks/SDL2.framework/Headers
+#linkerOpts.osx = -L/Library/Frameworks/SDL2_image.framework
+#compilerOpts.osx = -I/opt/local/include/SDL2/
+#linkerOpts.osx = -L/opt/local/lib
+compilerOpts.osx = -F/Library/Frameworks -framework SDL2 -framework SDL2_image
+linkerOpts.osx = -F/Library/Frameworks -framework SDL2 -framework SDL2_image

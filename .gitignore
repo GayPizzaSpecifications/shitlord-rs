@@ -1,0 +1,14 @@
+.vscode/
+.vs/
+.idea/
+.gradle/
+build/
+*.7z
+*.klib
+*-build/
+old/
+
+
+
+
+god

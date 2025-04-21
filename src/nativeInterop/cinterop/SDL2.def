@@ -1,0 +1,15 @@
+package = SDL2
+headers = SDL2/SDL.h
+headerFilter = SDL2/SDL*
+entryPoint = SDL_main
+
+#linkerOpts = -lSDL2
+# Use macports headers for now because this shit broken
+#compilerOpts.osx = -I/Library/Frameworks/SDL2.framework/Headers -D_THREAD_SAFE
+#linkerOpts.osx = -L/Library/Frameworks/SDL2.framework
+#compilerOpts.osx = -I/opt/local/include/SDL2 -D_THREAD_SAFE
+#linkerOpts.osx = -L/opt/local/lib
+compilerOpts.osx = -F/Library/Frameworks -framework SDL2
+linkerOpts.osx = -F/Library/Frameworks -framework SDL2
+compilerOpts.linux = -I/usr/include/SDL2 -D_REENTRANT
+linkerOpts.linux = -lpthread
