@@ -20,7 +20,8 @@ pub(crate) struct Application {
   state: Option<Box<dyn State>>,
   time: TimeHelper,
   fps_counter: FPSCalculator,
-  fps_string: CString
+  fps_string: CString,
+  currently_fullscreen: bool,
 }
 
 impl Application {
@@ -32,7 +33,8 @@ impl Application {
       state: None,
       time: Default::default(),
       fps_counter: Default::default(),
-      fps_string: CString::new("").unwrap()
+      fps_string: CString::new("").unwrap(),
+      currently_fullscreen: false,
     }
   }
 
@@ -74,9 +76,16 @@ impl Application {
     match unsafe { SDL_EventType(event.r#type) } {
       SDL_EVENT_QUIT => self.should_quit = true,
       SDL_EVENT_KEY_DOWN => match unsafe { event.key }.key {
+        SDLK_RETURN => unsafe {
+          if !event.key.repeat && event.key.r#mod & SDL_KMOD_ALT != 0 {
+            SDL_SetWindowFullscreen(self.window, !self.currently_fullscreen);
+          }
+        }
         SDLK_ESCAPE => self.should_quit = true,
         _ => ()
       }
+      SDL_EVENT_WINDOW_ENTER_FULLSCREEN => self.currently_fullscreen = true,
+      SDL_EVENT_WINDOW_LEAVE_FULLSCREEN => self.currently_fullscreen = false,
       SDL_EVENT_GAMEPAD_ADDED => unsafe { GamePad::connected_event(event.gdevice.which) }
       SDL_EVENT_GAMEPAD_REMOVED => unsafe { GamePad::removed_event(event.gdevice.which) }
       SDL_EVENT_GAMEPAD_BUTTON_DOWN | SDL_EVENT_GAMEPAD_BUTTON_UP =>
