@@ -1,5 +1,6 @@
 use crate::renderer::Renderer;
 
+pub(crate) mod beatoburnerstate;
 pub(crate) mod splashstate;
 pub(crate) mod gamestate;
 

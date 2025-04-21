@@ -1,3 +1,4 @@
+use std::ops::BitOr;
 use sdl3_sys::gamepad::*;
 
 #[allow(dead_code)]
@@ -34,4 +35,22 @@ pub(crate) enum PadButton {
 impl PadButton {
   #[inline]
   pub(crate) const fn value(&self) -> i32 { *self as i32 }
+}
+
+pub(crate) struct PadButtons(i32);
+
+impl PadButtons {
+  #[inline]
+  pub(crate) const fn value(&self) -> i32 { self.0 }
+}
+
+impl BitOr for PadButtons {
+  type Output = Self;
+
+  #[inline]
+  fn bitor(self, rhs: Self) -> Self { Self(self.0 | rhs.0) }
+}
+
+impl From<PadButton> for PadButtons {
+  fn from(value: PadButton) -> Self { Self(value.value()) }
 }

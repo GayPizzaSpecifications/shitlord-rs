@@ -37,6 +37,9 @@ impl Application {
   }
 
   fn change_state<T: State + Default + 'static>(&mut self) {
+    if let Some(mut state) = self.state.take() {
+      state.quit();
+    }
     self.state = Some(Box::new(T::default()));
     if let Some(state) = self.state.as_mut() {
       state.load(self.renderer.as_mut().unwrap());
@@ -172,7 +175,7 @@ impl Application {
       match cmd {
         // Scene asked us to switch to a different one
         StateCmd::ChangeState(new_state) => {
-          if let Some(ref mut state) = app.state {
+          if let Some(mut state) = app.state.take() {
             state.quit();
           }
           app.state = Some(new_state);

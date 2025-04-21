@@ -1,5 +1,5 @@
 use crate::gamepad::axis::PadAxis;
-use crate::gamepad::button::PadButton;
+use crate::gamepad::button::{PadButton, PadButtons};
 
 pub(crate) struct PadState {
   axes: [i16; 6],
@@ -33,6 +33,9 @@ impl PadState {
   }
   pub(crate) fn pressed(&self, btn: PadButton) -> bool {
     ((self.btns & self.btns_impulse) & btn.value()) == btn.value()
+  }
+  pub(crate) fn pressed_any(&self, btns: PadButtons) -> bool {
+    ((self.btns & self.btns_impulse) & btns.value()) != 0
   }
   pub(crate) fn released(&self, btn: PadButton) -> bool {
     ((self.btns_impulse & !self.btns) & btn.value()) == btn.value()
