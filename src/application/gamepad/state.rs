@@ -1,5 +1,5 @@
-use crate::gamepad::axis::PadAxis;
-use crate::gamepad::button::{PadButton, PadButtons};
+use crate::application::gamepad::axis::PadAxis;
+use crate::application::gamepad::button::{PadButton, PadButtons};
 
 pub(crate) struct PadState {
   axes: [i16; 6],
@@ -8,7 +8,7 @@ pub(crate) struct PadState {
 }
 
 impl PadState {
-  pub(in crate::gamepad) fn new(axes: [i16; 6], cur: i32, prev: i32) -> Self {
+  pub(in crate::application::gamepad) fn new(axes: [i16; 6], cur: i32, prev: i32) -> Self {
     Self { axes, btns: cur, btns_impulse: cur ^ prev }
   }
 }

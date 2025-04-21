@@ -1,5 +1,5 @@
-use crate::gamepad::axis::PadAxis;
-use crate::gamepad::state::PadState;
+use crate::application::gamepad::axis::PadAxis;
+use crate::application::gamepad::state::PadState;
 use crate::maths::vector2::Vec2f;
 
 #[allow(dead_code)]

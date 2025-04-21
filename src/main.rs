@@ -3,7 +3,6 @@ mod application;
 mod maths;
 mod renderer;
 mod state;
-mod gamepad;
 mod random;
 mod fpscalculator;
 

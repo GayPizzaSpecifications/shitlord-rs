@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::ffi::CStr;
-use crate::gamepad::state::PadState;
+use crate::application::gamepad::state::PadState;
 use sdl3_sys::gamepad::*;
 use sdl3_sys::joystick::SDL_JoystickID;
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -59,13 +59,13 @@ impl GamePad {
       .iter().find(|x| x.joy_instance == id)?.get_state())
   }
 
-  pub(in crate::gamepad) fn get_state(&self) -> PadState {
+  fn get_state(&self) -> PadState {
     PadState::new(self.axes, self.btns_cur, self.btns_prev)
   }
 }
 
 impl GamePad {
-  pub(crate) fn connected_event(id: SDL_JoystickID) {
+  pub(in crate::application) fn connected_event(id: SDL_JoystickID) {
     let mut pads = GAME_PADS.lock().expect("lock not obtained");
     if pads.iter().any(|x| x.joy_instance == id) {
       return;
@@ -79,7 +79,7 @@ impl GamePad {
     }
   }
 
-  pub(crate) fn removed_event(id: SDL_JoystickID) {
+  pub(in crate::application) fn removed_event(id: SDL_JoystickID) {
     let mut pads = GAME_PADS.lock().expect("lock not obtained");
     if let Some(idx) = pads.iter().position(|x| x.joy_instance == id) {
       pads.remove(idx);
@@ -89,7 +89,7 @@ impl GamePad {
     }
   }
 
-  pub(crate) fn button_event(id: SDL_JoystickID, btn: SDL_GamepadButton, down: bool) {
+  pub(in crate::application) fn button_event(id: SDL_JoystickID, btn: SDL_GamepadButton, down: bool) {
     let mut pads = GAME_PADS.lock().expect("lock not obtained");
     if let Some(pad) = pads.iter_mut().find(|x| x.joy_instance == id) {
       let btn_mask = 1 << btn.0;
@@ -97,14 +97,14 @@ impl GamePad {
     }
   }
 
-  pub(crate) fn axis_event(id: SDL_JoystickID, axis: SDL_GamepadAxis, value: i16) {
+  pub(in crate::application) fn axis_event(id: SDL_JoystickID, axis: SDL_GamepadAxis, value: i16) {
     let mut pads = GAME_PADS.lock().expect("lock not obtained");
     if let Some(pad) = pads.iter_mut().find(|x| x.joy_instance == id) {
       pad.axes[axis.0 as usize] = value;
     }
   }
 
-  pub(crate) fn advance_frame() {
+  pub(in crate::application) fn advance_frame() {
     for pad in GAME_PADS.lock().expect("lock not obtained").iter_mut() {
       pad.btns_prev = pad.btns_cur;
     }

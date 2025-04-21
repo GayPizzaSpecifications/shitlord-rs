@@ -1,7 +1,7 @@
 use crate::actor::Actor;
 use crate::actor::beato::Beato;
-use crate::gamepad::button::PadButton;
-use crate::gamepad::GamePad;
+use crate::application::gamepad::button::PadButton;
+use crate::application::gamepad::GamePad;
 use crate::maths::rectangle::FRect;
 use crate::maths::vector2::Vec2f;
 use crate::random::drand48::Drand48;

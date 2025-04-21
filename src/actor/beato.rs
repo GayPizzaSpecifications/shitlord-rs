@@ -1,6 +1,6 @@
 use crate::actor::Actor;
-use crate::gamepad::deadzone::DeadZone2D;
-use crate::gamepad::{GamePad, button::PadButton};
+use crate::application::gamepad::deadzone::DeadZone2D;
+use crate::application::gamepad::{GamePad, button::PadButton};
 use crate::maths::extent::Extent;
 use crate::maths::rectangle::FRect;
 use crate::maths::vector2::{Vec2f, Vector2};

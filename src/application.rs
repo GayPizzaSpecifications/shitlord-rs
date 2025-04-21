@@ -1,6 +1,6 @@
 use crate::application::timehelper::TimeHelper;
 use crate::fpscalculator::FPSCalculator;
-use crate::gamepad::GamePad;
+use crate::application::gamepad::GamePad;
 use crate::maths::vector2::Vec2f;
 use crate::renderer::colour::Colour;
 use crate::renderer::Renderer;
@@ -11,6 +11,7 @@ use std::ffi::{c_int, CStr, CString};
 use std::ptr::addr_of_mut;
 use std::ptr::null_mut;
 
+pub(crate) mod gamepad;
 mod timehelper;
 
 pub(crate) struct Application {

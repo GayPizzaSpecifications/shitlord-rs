@@ -1,7 +1,7 @@
 use crate::actor::beato::Beato;
 use crate::actor::Actor;
-use crate::gamepad::button::{PadButton, PadButtons};
-use crate::gamepad::GamePad;
+use crate::application::gamepad::button::{PadButton, PadButtons};
+use crate::application::gamepad::GamePad;
 use crate::renderer::Renderer;
 use crate::state::beatoburnerstate::BeatoBurnerState;
 use crate::state::{State, StateCmd};
@@ -17,8 +17,8 @@ impl State for GameState {
     self.beato.update(deltatime);
     if let Some(pad) = GamePad::current() {
       if pad.pressed_any(PadButtons::from(PadButton::DPadLeft) | PadButton::DPadRight.into()
-          | PadButton::DPadUp.into() | PadButton::DPadDown.into() | PadButton::East.into()
-          | PadButton::South.into() | PadButton::Start.into()
+          | PadButton::DPadUp.into() | PadButton::DPadDown.into()
+          | PadButton::East.into() | PadButton::South.into() | PadButton::Start.into()
       ) {
         match self.sequence_index {
           0 | 1 if { pad.pressed(PadButton::DPadUp) } => self.sequence_index += 1,
