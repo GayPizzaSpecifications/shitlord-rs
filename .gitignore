@@ -1,11 +1,9 @@
 .vscode/
 .vs/
 .idea/
-.gradle/
-build/
+target/
 *.7z
-*.klib
-*-build/
+Cargo.lock
 old/
 
 
