@@ -128,7 +128,15 @@ impl<T: Add<Output = T> + Mul<Output = T> + Copy> Vector2<T> {
 
 impl<T: ScalarSqrt + Add<Output = T> + Mul<Output = T> + Copy> Vector2<T> {
   #[inline(always)]
-  pub(crate) fn mag(self) -> T { self.mag2().sqrt() }
+  pub(crate) fn mag(&self) -> T { self.mag2().sqrt() }
+}
+
+impl<T: ScalarSqrt + Add<Output = T> + Mul<Output = T> + Div<Output = T> + DivAssign + Copy> Vector2<T> {
+  pub(crate) fn normalise(&mut self) {
+    let mag = self.mag();
+    self.x /= mag;
+    self.y /= mag;
+  }
 }
 
 impl<T: ScalarTrig + Copy> Vector2<T> {

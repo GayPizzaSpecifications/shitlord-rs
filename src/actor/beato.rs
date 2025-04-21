@@ -83,22 +83,14 @@ impl Actor for Beato {
     const FRICTION: f32 = 6.0;
 
     if let Some(pad) = GamePad::current() {
-      if pad.down(PadButton::DPadLeft) {
-        self.vel.x -= ACCELERATION * deltatime;
-        self.flip = true
-      }
-      if pad.down(PadButton::DPadRight) {
-        self.vel.x += ACCELERATION * deltatime;
-        self.flip = false;
-      }
-      if pad.down(PadButton::DPadUp) {
-        self.vel.y -= ACCELERATION * deltatime;
-      }
-      if pad.down(PadButton::DPadDown) {
-        self.vel.y += ACCELERATION * deltatime;
-      }
+      let mut lstick = pad.left_stick().radial_deadzone(0.1, 1.0);
 
-      let lstick = pad.left_stick().radial_deadzone(0.1, 1.0);
+      if pad.down(PadButton::DPadLeft) { lstick.x -= 1.0 }
+      if pad.down(PadButton::DPadRight) { lstick.x += 1.0 }
+      if pad.down(PadButton::DPadUp) { lstick.y -= 1.0 }
+      if pad.down(PadButton::DPadDown) { lstick.y += 1.0 }
+
+      if lstick.mag() > 1.0 { lstick.normalise(); }
       self.vel += lstick * ACCELERATION * deltatime;
       if lstick.x < -0.1 {
         self.flip = true;
