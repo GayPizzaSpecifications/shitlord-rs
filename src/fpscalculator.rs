@@ -28,6 +28,7 @@ impl FPSCalculator {
   }
 }
 
+#[allow(dead_code)]
 pub(crate) trait DurationConv {
   fn from_performance(counter: u64, frequency: u64) -> Self;
 }

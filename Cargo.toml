@@ -3,6 +3,10 @@ name = "shitlord-rs"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+use-performance-counter = []
+
 [dependencies]
 sdl3-sys       = "0.4.7"
 sdl3-image-sys = "0.1.3"

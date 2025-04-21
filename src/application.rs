@@ -1,4 +1,5 @@
-use crate::fpscalculator::{DurationConv, FPSCalculator};
+use crate::application::timehelper::TimeHelper;
+use crate::fpscalculator::FPSCalculator;
 use crate::gamepad::GamePad;
 use crate::maths::vector2::Vec2f;
 use crate::renderer::colour::Colour;
@@ -9,16 +10,15 @@ use sdl3_sys::everything::*;
 use std::ffi::{c_int, CStr, CString};
 use std::ptr::addr_of_mut;
 use std::ptr::null_mut;
-use std::time::Duration;
 
-const USE_PERFORMANCE_COUNTER: bool = false;
+mod timehelper;
 
 pub(crate) struct Application {
   window: *mut SDL_Window,
   renderer: Option<Renderer>,
   should_quit: bool,
   state: Option<Box<dyn State>>,
-  prev: u64,
+  time: TimeHelper,
   fps_counter: FPSCalculator,
   fps_string: CString
 }
@@ -30,7 +30,7 @@ impl Application {
       renderer: None,
       should_quit: false,
       state: None,
-      prev: 0,
+      time: Default::default(),
       fps_counter: Default::default(),
       fps_string: CString::new("").unwrap()
     }
@@ -64,12 +64,8 @@ impl Application {
     }
 
     self.renderer = Some(Renderer::new(self.window, 640, 480, true)?);
-
     self.change_state::<SplashState>();
-
-    self.prev = unsafe {
-      if USE_PERFORMANCE_COUNTER { SDL_GetPerformanceCounter() } else { SDL_GetTicksNS() }
-    };
+    self.time.init();
 
     Ok(())
   }
@@ -133,26 +129,11 @@ impl Application {
 
     let mut exit_code = 0_u8;
     while !app.should_quit {
-      // Timing
-      let mut freq = 0_u64;
-      let delta: u64;
-      unsafe {
-        let cur = if USE_PERFORMANCE_COUNTER {
-          freq = SDL_GetPerformanceFrequency();
-          SDL_GetPerformanceCounter()
-        } else { SDL_GetTicksNS() };
-        delta = cur - app.prev;
-        app.prev = cur;
-      }
+      app.time.frame_advance();
 
       // Update FPS metrics
-      if USE_PERFORMANCE_COUNTER {
-        app.fps_counter.frame(Duration::from_performance(delta, freq),
-          |s| app.fps_string = CString::new(format!("FPS: {}", s)).unwrap());
-      } else {
-        app.fps_counter.frame(Duration::from_nanos(delta),
-          |s| app.fps_string = CString::new(format!("FPS: {}", s)).unwrap());
-      }
+      app.fps_counter.frame(app.time.get_duration(),
+        |s| app.fps_string = CString::new(format!("FPS: {}", s)).unwrap());
 
       // Poll events
       GamePad::advance_frame();
@@ -162,16 +143,13 @@ impl Application {
       }
 
       // Calculate delta time
-      const NS: f64 = 1.0 / 1_000_000_000.0;
       const MIN_DELTA_TIME: f32 = 1.0 / 15.0;
-      let fdelta = f32::min(MIN_DELTA_TIME, if USE_PERFORMANCE_COUNTER
-        { delta as f64 / freq as f64 } else { delta as f64 * NS } as f32);
+      let delta = f32::min(MIN_DELTA_TIME, app.time.get_deltatime() as f32);
 
       // Tick and draw
-      let cmd = app.state.as_mut().map_or(StateCmd::Continue, |state| state.tick(fdelta));
-      app.draw(fdelta);
+      let cmd = app.state.as_mut().map_or(StateCmd::Continue, |state| state.tick(delta));
+      app.draw(delta);
 
-      //
       match cmd {
         // Scene asked us to switch to a different one
         StateCmd::ChangeState(new_state) => {
