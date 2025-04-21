@@ -79,8 +79,8 @@ impl Actor for Beato {
   fn set_position(&mut self, new_position: Vector2<f32>) { self.pos = new_position }
 
   fn update(&mut self, deltatime: f32) {
-    const ACCELERATION: f32 = 0.25 * 120.0;
-    const FRICTION: f32 = 0.05 * 120.0;
+    const ACCELERATION: f32 = 3600.0;
+    const FRICTION: f32 = 6.0;
 
     if let Some(pad) = GamePad::current() {
       if pad.down(PadButton::DPadLeft) {
@@ -124,7 +124,7 @@ impl Actor for Beato {
 
     const RECT: Extent<i32> = Extent::new(-32, -48, 640 + 32, 480 + 48);
 
-    self.pos += self.vel * 120.0 * deltatime;
+    self.pos += self.vel * deltatime;
     if self.pos.x < RECT.left as f32 {
       self.pos.x += RECT.width() as f32;
     }
@@ -149,7 +149,7 @@ impl Actor for Beato {
       self.pos.y - height * 0.5,
       width, height);
     let flip = if self.flip { Flip::Horizontal } else { Flip::None };
-    let angle = self.vel.x as f64 * 2.45;
+    let angle = self.vel.x as f64 / 120.0 * 2.45;
     renderer.copy(&self.guy_texture, dst, angle, flip);
 
     if self.lazering {
