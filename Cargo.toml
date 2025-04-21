@@ -4,5 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+sdl3-sys       = "0.4.7"
+sdl3-image-sys = "0.1.3"
+
+[target.'cfg(target_os = "macos")'.dependencies]
 sdl3-sys       = { version = "0.4.7", features = [ "link-framework" ] }
 sdl3-image-sys = { version = "0.1.3", features = [ "link-framework" ] }
+
+[target.'cfg(windows)'.dependencies]
+sdl3-sys       = { version = "0.4.7", features = [ "build-from-source" ] }
+sdl3-image-sys = { version = "0.1.3", features = [ "build-from-source" ] }
