@@ -10,9 +10,11 @@ use sdl3_sys::everything::*;
 use std::ffi::{c_int, CStr, CString};
 use std::ptr::addr_of_mut;
 use std::ptr::null_mut;
+use crate::application::keyboard::Keyboard;
 
 pub(crate) mod gamepad;
 mod timehelper;
+pub(crate) mod keyboard;
 
 pub(crate) struct Application {
   window: *mut SDL_Window,
@@ -73,34 +75,30 @@ impl Application {
     Ok(())
   }
 
-  fn event(&mut self, event: SDL_Event) {
-    match unsafe { SDL_EventType(event.r#type) } {
+  #[allow(unsafe_op_in_unsafe_fn)]
+  unsafe fn event(&mut self, event: SDL_Event) {
+    match SDL_EventType(event.r#type) {
       SDL_EVENT_QUIT => self.should_quit = true,
-      SDL_EVENT_KEY_DOWN => match unsafe { event.key }.key {
-        SDLK_RETURN => unsafe {
-          if !event.key.repeat && event.key.r#mod & SDL_KMOD_ALT != 0 {
-            SDL_SetWindowFullscreen(self.window, !self.currently_fullscreen);
-          }
-        }
+      SDL_EVENT_KEY_DOWN | SDL_EVENT_KEY_UP => match event.key.key {
+        SDLK_RETURN if event.key.down && !event.key.repeat && event.key.r#mod & SDL_KMOD_ALT != 0 =>
+          { SDL_SetWindowFullscreen(self.window, !self.currently_fullscreen); }
         SDLK_ESCAPE => self.should_quit = true,
-        _ => ()
+        _ => Keyboard::key_event(event.key.scancode, event.key.down, event.key.repeat)
       }
       SDL_EVENT_WINDOW_ENTER_FULLSCREEN => self.currently_fullscreen = true,
       SDL_EVENT_WINDOW_LEAVE_FULLSCREEN => self.currently_fullscreen = false,
-      SDL_EVENT_GAMEPAD_ADDED => unsafe { GamePad::connected_event(event.gdevice.which) }
-      SDL_EVENT_GAMEPAD_REMOVED => unsafe { GamePad::removed_event(event.gdevice.which) }
+      SDL_EVENT_GAMEPAD_ADDED => GamePad::connected_event(event.gdevice.which),
+      SDL_EVENT_GAMEPAD_REMOVED => GamePad::removed_event(event.gdevice.which),
       SDL_EVENT_GAMEPAD_BUTTON_DOWN | SDL_EVENT_GAMEPAD_BUTTON_UP =>
-        unsafe { GamePad::button_event(
+        GamePad::button_event(
           event.gbutton.which,
           SDL_GamepadButton(event.gbutton.button as c_int),
-          event.gbutton.down
-        ) }
+          event.gbutton.down),
       SDL_EVENT_GAMEPAD_AXIS_MOTION =>
-        unsafe { GamePad::axis_event(
+        GamePad::axis_event(
           event.gaxis.which,
           SDL_GamepadAxis(event.gaxis.axis as c_int),
-          event.gaxis.value
-        ) }
+          event.gaxis.value),
       _ => ()
     }
   }
@@ -147,9 +145,12 @@ impl Application {
 
       // Poll events
       GamePad::advance_frame();
-      let mut event: SDL_Event = unsafe { std::mem::zeroed() };
-      while unsafe { SDL_PollEvent(addr_of_mut!(event)) } {
-        app.event(event);
+      Keyboard::advance_frame();
+      unsafe {
+        let mut event: SDL_Event = std::mem::zeroed();
+        while SDL_PollEvent(addr_of_mut!(event)) {
+          app.event(event);
+        }
       }
 
       // Calculate delta time

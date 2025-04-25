@@ -1,6 +1,7 @@
 use crate::actor::Actor;
 use crate::application::gamepad::deadzone::DeadZone2D;
 use crate::application::gamepad::{GamePad, button::PadButton};
+use crate::application::keyboard::{Key, Keyboard};
 use crate::maths::extent::Extent;
 use crate::maths::rectangle::FRect;
 use crate::maths::vector2::{Vec2f, Vector2};
@@ -82,36 +83,49 @@ impl Actor for Beato {
     const ACCELERATION: f32 = 3600.0;
     const FRICTION: f32 = 6.0;
 
+    let mut lstick = Vec2f::ZERO; let mut rstick = Vec2f::ZERO; let mut fire = false;
     if let Some(pad) = GamePad::current() {
-      let mut lstick = pad.left_stick().radial_deadzone(0.1, 1.0);
+      lstick += pad.left_stick().radial_deadzone(0.1, 1.0);
 
       if pad.down(PadButton::DPadLeft) { lstick.x -= 1.0 }
       if pad.down(PadButton::DPadRight) { lstick.x += 1.0 }
       if pad.down(PadButton::DPadUp) { lstick.y -= 1.0 }
       if pad.down(PadButton::DPadDown) { lstick.y += 1.0 }
 
-      if lstick.mag() > 1.0 { lstick.normalise(); }
-      self.vel += lstick * ACCELERATION * deltatime;
-      if lstick.x < -0.1 {
-        self.flip = true;
-      } else if lstick.x > 0.1 {
-        self.flip = false;
-      }
 
-      let rstick = pad.right_stick().radial_deadzone(0.1, 1.0);
-      let lazer_mag = rstick.mag();
-      if lazer_mag > 0.125 {
-        self.lazering = if pad.right_trigger() >= 0.5 {
-          self.lazervec = rstick / lazer_mag;
-          true } else { false };
-        self.flip = rstick.x < 0.0;
-        if self.lazering {
-          //GamePad.rumble = 1f32;
-        }
-      } else {
-        self.lazering = false;
-        //GamePad.rumble = 0f32;
+      rstick += pad.right_stick().radial_deadzone(0.1, 1.0);
+      fire = pad.right_trigger() >= 0.5;
+    }
+
+    if Keyboard::down(Key::Left)  { lstick.x -= 1.0 }
+    if Keyboard::down(Key::Right) { lstick.x += 1.0 }
+    if Keyboard::down(Key::Up)    { lstick.y -= 1.0 }
+    if Keyboard::down(Key::Down)  { lstick.y += 1.0 }
+    if Keyboard::down(Key::Space) {
+      fire = true;
+      rstick = if self.flip { -Vec2f::X } else { Vec2f::X };
+    }
+
+    if lstick.mag() > 1.0 { lstick.normalise(); }
+    self.vel += lstick * ACCELERATION * deltatime;
+    if lstick.x < -0.1 {
+      self.flip = true;
+    } else if lstick.x > 0.1 {
+      self.flip = false;
+    }
+
+    let lazer_mag = rstick.mag();
+    if lazer_mag > 0.125 {
+      self.lazering = if fire {
+        self.lazervec = rstick / lazer_mag;
+        true } else { false };
+      self.flip = rstick.x < 0.0;
+      if self.lazering {
+        //GamePad.rumble = 1f32;
       }
+    } else {
+      self.lazering = false;
+      //GamePad.rumble = 0f32;
     }
 
     const RECT: Extent<i32> = Extent::new(-32, -48, 640 + 32, 480 + 48);

@@ -1,4 +1,4 @@
-use core::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
 use crate::maths::scalar::{ScalarSqrt, ScalarTrig};
 
 #[derive(Default, PartialEq, Debug, Copy, Clone)]
@@ -70,9 +70,16 @@ impl<T: DivAssign> DivAssign for Vector2<T> {
   }
 }
 
+impl<T: Neg<Output = T>> Neg for Vector2<T> {
+  type Output = Self;
+  #[inline(always)]
+  fn neg(self) -> Self::Output {
+    Self { x: -self.x, y: -self.y }
+  }
+}
+
 impl<T: Add<Output = T>> Add for Vector2<T> {
   type Output = Self;
-
   #[inline(always)]
   fn add(self, rhs: Self) -> Self {
     Self { x: self.x + rhs.x, y: self.y + rhs.y }
